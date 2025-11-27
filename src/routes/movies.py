@@ -35,14 +35,10 @@ async def get_movies(
     return {
         "movies": movies,
         "prev_page": (
-            f"/theater/movies/?page={page - 1}&per_page={per_page}"
-            if page > 1
-            else None
+            f"/api/v1/theater/movies/?page={page - 1}&per_page={per_page}" if page > 1 else None
         ),
         "next_page": (
-            f"/theater/movies/?page={page + 1}&per_page={per_page}"
-            if page < total_pages
-            else None
+            f"/api/v1/theater/movies/?page={page + 1}&per_page={per_page}" if page < total_pages else None
         ),
         "total_pages": total_pages,
         "total_items": total_items,
@@ -171,14 +167,7 @@ async def get_movie_detail(movie_id: int, db: AsyncSession = Depends(get_db)):
 @router.delete("/movies/{movie_id}/", status_code=204)
 async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
-        select(MovieModel)
-        .options(
-            selectinload(MovieModel.country),
-            selectinload(MovieModel.genres),
-            selectinload(MovieModel.actors),
-            selectinload(MovieModel.languages),
-        )
-        .where(MovieModel.id == movie_id)
+        select(MovieModel).where(MovieModel.id == movie_id)
     )
     movie = result.scalar_one_or_none()
     if not movie:
@@ -192,35 +181,12 @@ async def delete_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/movies/{movie_id}/", status_code=200)
 async def update_movie(
-    movie_id: int, movie: MovieUpdate, db: AsyncSession = Depends(get_db)
+        movie_id: int, movie: MovieUpdate, db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
-        select(MovieModel)
-        .options(
-            selectinload(MovieModel.country),
-            selectinload(MovieModel.genres),
-            selectinload(MovieModel.actors),
-            selectinload(MovieModel.languages),
-        )
-        .where(MovieModel.id == movie_id)
+        select(MovieModel).where(MovieModel.id == movie_id)
     )
     db_movie = result.scalar_one_or_none()
-    if not db_movie:
-        raise HTTPException(
-            status_code=404, detail="Movie with the given ID was not found."
-        )
-
-    if movie.score is not None:
-        if movie.score > 100 or movie.score < 0:
-            raise HTTPException(status_code=400, detail="Invalid input data.")
-
-    if movie.budget is not None:
-        if movie.budget < 0:
-            raise HTTPException(status_code=400, detail="Invalid input data.")
-
-    if movie.revenue is not None:
-        if movie.revenue < 0:
-            raise HTTPException(status_code=400, detail="Invalid input data.")
 
     update_data = movie.model_dump(exclude_unset=True)
     for key, value in update_data.items():

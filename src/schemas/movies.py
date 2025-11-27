@@ -1,7 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Optional, List
-from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, Field
 from database.models import MovieStatusEnum
 
 
@@ -52,11 +51,17 @@ class MovieDetail(Movie, ORMBaseModel):
 class MovieUpdate(ORMBaseModel):
     name: Optional[str] = None
     date: Optional[date] = None
-    score: Optional[float] = None
+    score: Optional[float] = Field(None, ge=0, le=100)
     overview: Optional[str] = None
     status: Optional[MovieStatusEnum] = None
-    budget: Optional[float] = None
-    revenue: Optional[float] = None
+    budget: Optional[float] = Field(None, ge=0)
+    revenue: Optional[float] = Field(None, ge=0)
+
+    @field_validator("date")
+    def date_not_too_far(cls, v: date):
+        if v and v > date.today() + timedelta(days=365):
+            raise ValueError("Release date cannot be more than 1 year in the future")
+        return v
 
 
 class MovieCreate(ORMBaseModel):
@@ -71,6 +76,33 @@ class MovieCreate(ORMBaseModel):
     genres: list[str]
     actors: list[str]
     languages: list[str]
+
+    @field_validator("date")
+    def date_not_too_far(cls, v: date):
+        if v > (date.today() + timedelta(days=365)):
+            raise ValueError("Release date cannot be more than 1 year in the future")
+        return v
+
+    # Валідатор для score
+    @field_validator("score")
+    def score_in_range(cls, v: float):
+        if v < 0 or v > 100:
+            raise ValueError("Score must be between 0 and 100")
+        return v
+
+    # Валідатор для budget
+    @field_validator("budget")
+    def budget_non_negative(cls, v: float):
+        if v < 0:
+            raise ValueError("Budget cannot be negative")
+        return v
+
+    # Валідатор для revenue
+    @field_validator("revenue")
+    def revenue_non_negative(cls, v: float):
+        if v < 0:
+            raise ValueError("Revenue cannot be negative")
+        return v
 
 
 class MovieList(ORMBaseModel):
