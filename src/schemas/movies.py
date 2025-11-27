@@ -58,7 +58,7 @@ class MovieUpdate(ORMBaseModel):
     revenue: Optional[float] = Field(None, ge=0)
 
     @field_validator("date")
-    def date_not_too_far(cls, v: date):
+    def date_not_too_far(cls, v: Optional[type(date)]):
         if v and v > date.today() + timedelta(days=365):
             raise ValueError("Release date cannot be more than 1 year in the future")
         return v
@@ -78,7 +78,7 @@ class MovieCreate(ORMBaseModel):
     languages: list[str]
 
     @field_validator("date")
-    def date_not_too_far(cls, v: date):
+    def date_not_too_far(cls, v: Optional[date]):
         if v > (date.today() + timedelta(days=365)):
             raise ValueError("Release date cannot be more than 1 year in the future")
         return v
