@@ -69,13 +69,11 @@ class MovieUpdate(ORMBaseModel):
             raise ValueError("Score must be between 0 and 100")
         return v
 
-
     @field_validator("budget")
     def budget_non_negative(cls, v: float):
         if v < 0:
             raise ValueError("Budget cannot be negative")
         return v
-
 
     @field_validator("revenue")
     def revenue_non_negative(cls, v: float):
@@ -103,21 +101,18 @@ class MovieCreate(ORMBaseModel):
             raise ValueError("Release date cannot be more than 1 year in the future")
         return v
 
-    # Валідатор для score
     @field_validator("score")
     def score_in_range(cls, v: float):
         if v < 0 or v > 100:
             raise ValueError("Score must be between 0 and 100")
         return v
 
-    # Валідатор для budget
     @field_validator("budget")
     def budget_non_negative(cls, v: float):
         if v < 0:
             raise ValueError("Budget cannot be negative")
         return v
 
-    # Валідатор для revenue
     @field_validator("revenue")
     def revenue_non_negative(cls, v: float):
         if v < 0:
